@@ -9,7 +9,7 @@ import (
 	"github.com/LAzyDev-101/stupid-server/app"
 )
 
-func PostChallenge(rw http.ResponseWriter, r *http.Request) {
+func PostChallenge(appApi *app.AppCaptcha, rw http.ResponseWriter, r *http.Request) {
 	var params app.RequestParams
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -23,7 +23,7 @@ func PostChallenge(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := app.ProcessRequest(params)
+	resp, err := appApi.ProcessRequest(params)
 	if err != nil {
 		log.Printf("error: %+v", err)
 		return

@@ -1,8 +1,15 @@
 package app
 
-var (
-	users map[string][]string
+import (
+	"math/rand"
+	"sync"
+	"time"
 )
+
+type AppCaptcha struct {
+	Users map[string][]string
+	sync.Mutex
+}
 
 var allChallenge = []string{
 	"stupid-run",
@@ -22,10 +29,13 @@ type RequestResponse struct {
 	NextChallengeName string `json:"next_challenge_name"`
 }
 
-func ProcessRequest(params RequestParams) (*RequestResponse, error) {
-	challengePlayed, exist := users[params.Key]
+func (app *AppCaptcha) ProcessRequest(params RequestParams) (*RequestResponse, error) {
+	app.Lock()
+	defer app.Unlock()
+
+	challengePlayed, exist := app.Users[params.Key]
 	if !exist {
-		users[params.Key] = make([]string, 0)
+		app.Users[params.Key] = make([]string, 0)
 	}
 	if len(challengePlayed) == 4 {
 		return &RequestResponse{
@@ -34,14 +44,17 @@ func ProcessRequest(params RequestParams) (*RequestResponse, error) {
 			NextChallengeName: "",
 		}, nil
 	}
-	users[params.Key] = append(users[params.Key], params.ChallengeName)
+	app.Users[params.Key] = append(app.Users[params.Key], params.ChallengeName)
 
 	encountered := make(map[string]bool)
-	for _, playedChallenge := range users[params.Key] {
+	for _, playedChallenge := range app.Users[params.Key] {
 		encountered[playedChallenge] = true
 	}
 
 	nextChallengeName := ""
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(allChallenge), func(i, j int) { allChallenge[i], allChallenge[j] = allChallenge[j], allChallenge[i] })
+
 	for _, challenge := range allChallenge {
 		if _, exist := encountered[challenge]; !exist {
 			nextChallengeName = challenge
@@ -54,8 +67,4 @@ func ProcessRequest(params RequestParams) (*RequestResponse, error) {
 		Status:            "PROCESSING",
 		NextChallengeName: nextChallengeName,
 	}, nil
-}
-
-func init() {
-	users = make(map[string][]string)
 }

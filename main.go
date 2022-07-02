@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -23,10 +22,8 @@ func accessControlMiddleware(next http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
-		body, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
 
-		log.Printf("%s %s %s", r.Method, r.URL, string(body))
+		log.Printf("%s %s", r.Method, r.URL)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -36,8 +33,8 @@ func main() {
 	app := &app.AppCaptcha{
 		Users: make(map[string][]string),
 	}
+	_ = app
 	router := mux.NewRouter()
-	router.Use(accessControlMiddleware)
 
 	// router.Handle(
 	// 	"/memory-game",
@@ -45,16 +42,16 @@ func main() {
 	// 		serveStatic("static/memory-game")),
 	// )
 
-	// router.Handle("/memory-game", http.StripPrefix("/static/memory-game", fs))
-	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
-	router.PathPrefix("/").Handler(s)
-
 	router.HandleFunc(
 		"/post_finish",
 		func(w http.ResponseWriter, r *http.Request) {
 			api.PostChallenge(app, w, r)
 		},
 	).Methods("POST")
+
+	router.Use(accessControlMiddleware)
+	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	router.PathPrefix("/").Handler(s)
 
 	log.Print("Listening on :3000...")
 	err := http.ListenAndServe(":3000", router)

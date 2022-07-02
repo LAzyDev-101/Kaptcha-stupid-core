@@ -12,10 +12,10 @@ type AppCaptcha struct {
 }
 
 var allChallenge = []string{
-	"stupid-run",
-	"stupid-block",
-	"stupid-bird",
-	"stupid-memory",
+	"stupid_run",
+	"stupid_block",
+	"stupid_bird",
+	"stupid_memory",
 }
 
 type RequestParams struct {

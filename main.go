@@ -20,7 +20,7 @@ func main() {
 	}
 	router := mux.NewRouter()
 	router.Handle(
-		"/memory-game/",
+		"/stupid_memory/",
 		http.StripPrefix("/memory-game/",
 			serveStatic("static/memory-game")),
 	)

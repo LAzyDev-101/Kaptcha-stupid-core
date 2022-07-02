@@ -10,7 +10,7 @@ import (
 )
 
 func serveStatic(path string) http.Handler {
-	return http.FileServer(http.Dir(path))
+	return http.StripPrefix("static", http.FileServer(http.Dir(path)))
 }
 
 func main() {
@@ -19,11 +19,16 @@ func main() {
 		Users: make(map[string][]string),
 	}
 	router := mux.NewRouter()
-	router.Handle(
-		"/stupid_memory/",
-		http.StripPrefix("/memory-game/",
-			serveStatic("static/memory-game")),
-	)
+
+	// router.Handle(
+	// 	"/memory-game",
+	// 	http.StripPrefix("/memory-game/",
+	// 		serveStatic("static/memory-game")),
+	// )
+
+	// router.Handle("/memory-game", http.StripPrefix("/static/memory-game", fs))
+	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	router.PathPrefix("/static/").Handler(s)
 
 	router.HandleFunc(
 		"/post_finish",
